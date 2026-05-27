@@ -1,7 +1,1 @@
-
-fatal: not a git repository (or any of the parent directories): .git
-PS D:\selprojects\sitedoc> git commit -m "Add auto-commit workflow"
-fatal: not a git repository (or any of the parent directories): .git
-PS D:\selprojects\sitedoc> git push origin main
-fatal: not a git repository (or any of the parent directories): .git
-PS D:\selprojects\sitedoc> 
+Update the start command in railway.json from "cd server && npm start" to just "npm start". The rootDirectory is already set to "server", so the container's working directory is already inside the server folder, and the "cd server" command fails because there is no nested server/server path. The app never started, causing all healthcheck attempts to return "service unavailable".
