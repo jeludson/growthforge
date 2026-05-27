@@ -1,8 +1,11 @@
-import Report from '../models/Report.js';
-import Competitor from '../models/Competitor.js';
 import { scanWebsite, calculateSeoScores, calculatePerformance, analyzeCompetitor } from '../services/websiteScanner.js';
 import { generateAIInsights } from '../services/aiService.js';
 import { generateReportPDF } from '../services/pdfService.js';
+
+let reports = [];
+let reportIdCounter = 1;
+let competitors = [];
+let competitorIdCounter = 1;
 
 const buildAnalytics = (seoScore, perfScore) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -20,7 +23,7 @@ const buildAnalytics = (seoScore, perfScore) => {
 
 export const generateReport = async (req, res) => {
   try {
-    const { websiteUrl, businessCategory, location, competitors = [] } = req.body;
+    const { websiteUrl, businessCategory, location, competitors: compUrls = [] } = req.body;
     const scan = await scanWebsite(websiteUrl);
     if (!scan.success) {
       return res.status(400).json({ success: false, message: scan.error });
@@ -32,13 +35,15 @@ export const generateReport = async (req, res) => {
     const leadPotential = Math.min(100, Math.round(seo.score * 0.4 + perf.score * 0.3 + 25));
 
     const competitorData = [];
-    for (const url of competitors.filter(Boolean).slice(0, 5)) {
-      competitorData.push(await analyzeCompetitor(url));
-      await Competitor.findOneAndUpdate(
-        { user: req.user._id, url },
-        { user: req.user._id, url, ...competitorData[competitorData.length - 1] },
-        { upsert: true, new: true }
-      );
+    for (const url of compUrls.filter(Boolean).slice(0, 5)) {
+      const comp = await analyzeCompetitor(url);
+      competitorData.push(comp);
+      const existing = competitors.find(c => c.userId === req.user.id && c.url === url);
+      if (existing) {
+        Object.assign(existing, comp);
+      } else {
+        competitors.push({ id: competitorIdCounter++, ...comp, url, userId: req.user.id, createdAt: new Date() });
+      }
     }
 
     const draft = {
@@ -57,19 +62,15 @@ export const generateReport = async (req, res) => {
 
     const aiInsights = await generateAIInsights(draft);
 
-    const report = await Report.create({
-      user: req.user._id,
+    const report = {
+      id: reportIdCounter++,
+      userId: req.user.id,
       ...draft,
       aiInsights,
       analytics: buildAnalytics(seo.score, perf.score),
-    });
-
-    req.user.websiteUrl = websiteUrl;
-    req.user.businessCategory = businessCategory;
-    req.user.location = location;
-    req.user.competitors = competitors;
-    req.user.onboardingComplete = true;
-    await req.user.save();
+      createdAt: new Date()
+    };
+    reports.push(report);
 
     res.status(201).json({ success: true, report });
   } catch (err) {
@@ -78,28 +79,29 @@ export const generateReport = async (req, res) => {
 };
 
 export const getReports = async (req, res) => {
-  const reports = await Report.find({ user: req.user._id }).sort({ createdAt: -1 });
-  res.json({ success: true, reports });
+  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ success: true, reports: userReports });
 };
 
 export const getReport = async (req, res) => {
-  const report = await Report.findOne({ _id: req.params.id, user: req.user._id });
+  const report = reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
   if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
   res.json({ success: true, report });
 };
 
 export const getLatestReport = async (req, res) => {
-  const report = await Report.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const report = userReports[0] || null;
   res.json({ success: true, report });
 };
 
 export const downloadPDF = async (req, res) => {
   try {
-    const report = await Report.findOne({ _id: req.params.id, user: req.user._id });
+    const report = reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
     if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
     const buffer = await generateReportPDF(report, req.user);
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=growthforge-report-${report._id}.pdf`);
+    res.setHeader('Content-Disposition', `attachment; filename=growthforge-report-${report.id}.pdf`);
     res.send(buffer);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -107,13 +109,14 @@ export const downloadPDF = async (req, res) => {
 };
 
 export const rescanWebsite = async (req, res) => {
-  const latest = await Report.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const latest = userReports[0];
   if (!latest) return res.status(404).json({ success: false, message: 'No report to rescan' });
   req.body = {
     websiteUrl: latest.websiteUrl,
     businessCategory: latest.businessCategory,
     location: latest.location,
-    competitors: latest.competitors?.map((c) => c.url) || req.user.competitors,
+    competitors: latest.competitors?.map((c) => c.url) || [],
   };
   return generateReport(req, res);
 };

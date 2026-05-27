@@ -1,23 +1,42 @@
-import Message from '../models/Message.js';
-import Report from '../models/Report.js';
 import { chatWithAI } from '../services/aiService.js';
+
+let messages = [];
+let messageIdCounter = 1;
+let reports = [];
 
 export const sendMessage = async (req, res) => {
   try {
     const { message, reportId } = req.body;
     const report = reportId
-      ? await Report.findOne({ _id: reportId, user: req.user._id })
-      : await Report.findOne({ user: req.user._id }).sort({ createdAt: -1 });
+      ? reports.find(r => r.id === parseInt(reportId) && r.userId === req.user.id)
+      : reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
-    const history = await Message.find({ user: req.user._id }).sort({ createdAt: -1 }).limit(10);
+    const history = messages.filter(m => m.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
     const historyFormatted = history.reverse().map((m) => ({ role: m.role, content: m.content }));
 
-    await Message.create({ user: req.user._id, role: 'user', content: message, reportId: report?._id });
+    const userMsg = {
+      id: messageIdCounter++,
+      userId: req.user.id,
+      role: 'user',
+      content: message,
+      reportId: report?.id,
+      createdAt: new Date()
+    };
+    messages.push(userMsg);
+
     const reply = await chatWithAI(message, report, historyFormatted);
-    const assistantMsg = await Message.create({ user: req.user._id, role: 'assistant', content: reply, reportId: report?._id });
+    const assistantMsg = {
+      id: messageIdCounter++,
+      userId: req.user.id,
+      role: 'assistant',
+      content: reply,
+      reportId: report?.id,
+      createdAt: new Date()
+    };
+    messages.push(assistantMsg);
 
     const io = req.app.get('io');
-    if (io) io.to(req.user._id.toString()).emit('ai:message', { role: 'assistant', content: reply });
+    if (io) io.to(req.user.id.toString()).emit('ai:message', { role: 'assistant', content: reply });
 
     res.json({ success: true, message: assistantMsg });
   } catch (err) {
@@ -26,6 +45,6 @@ export const sendMessage = async (req, res) => {
 };
 
 export const getMessages = async (req, res) => {
-  const messages = await Message.find({ user: req.user._id }).sort({ createdAt: 1 }).limit(50);
-  res.json({ success: true, messages });
+  const userMessages = messages.filter(m => m.userId === req.user.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).slice(0, 50);
+  res.json({ success: true, messages: userMessages });
 };
