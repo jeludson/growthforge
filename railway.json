@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd server && npm start",
+    "startCommand": "npm start",
     "healthcheckPath": "/",
     "healthcheckPort": 5000
   }

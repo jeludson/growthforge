@@ -24,6 +24,7 @@ app.set('io', io);
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
+app.get('/', (_, res) => res.json({ success: true, message: 'GrowthForge AI API is running' }));
 app.get('/api/health', (_, res) => res.json({ success: true, message: 'GrowthForge AI API is running' }));
 
 app.use('/api/auth', authRoutes);
