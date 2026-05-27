@@ -1,0 +1,433 @@
+ Create a production-level SaaS web application called "GrowthForge AI"
+
+Tagline:
+"Analyze. Improve. Grow."
+
+Mission:
+Build an AI-powered business growth dashboard that helps local businesses analyze their website, discover weaknesses, compare with competitors, receive AI recommendations, and track leads.
+
+This is NOT a simple portfolio project. Build it like a real startup product with premium UI, modern UX, scalable architecture, smooth animations, and dashboard-level interactions.
+
+Tech stack:
+
+Frontend:
+- React
+- Tailwind CSS
+- Framer Motion
+- Recharts
+- Axios
+
+Backend:
+- Node.js
+- Express.js
+- MongoDB
+- JWT Authentication
+- Socket.io
+
+Design Requirements:
+
+Use a premium dark SaaS design.
+
+Colors:
+
+Background: #0f172a
+Card: #1e293b
+Accent: #6366f1
+Text: white
+
+UI Style:
+
+- Glassmorphism
+- Large rounded cards
+- Soft shadows
+- Animated hover effects
+- Smooth page transitions
+- Responsive mobile layout
+- Sticky sidebar
+- Dashboard feel similar to modern startup products
+- Loading skeletons
+- Animated progress bars
+- Professional charts
+- Micro interactions
+
+--------------------------------
+
+LANDING PAGE
+
+Hero section:
+
+Headline:
+
+"Stop Losing Customers Because of a Weak Website"
+
+Subtext:
+
+"GrowthForge AI scans your website and gives AI-powered growth insights in seconds."
+
+Buttons:
+
+Analyze Website
+View Demo Report
+
+Hero background:
+Animated grid + floating gradient blobs + subtle particles
+
+Add sections:
+
+Features
+Demo Dashboard Preview
+Testimonials
+Pricing
+FAQ
+Footer
+
+--------------------------------
+
+AUTHENTICATION
+
+Create:
+
+Login page
+Signup page
+Google sign-in
+Forgot password
+
+Fields:
+
+Name
+Email
+Password
+
+Use JWT auth.
+
+--------------------------------
+
+ONBOARDING FLOW
+
+After signup:
+
+Step 1:
+Website URL
+
+Step 2:
+Business category
+
+Step 3:
+Location
+
+Step 4:
+Competitor websites
+
+Example:
+
+nike.com
+adidas.com
+
+Button:
+
+Generate AI Report
+
+Show loading animation:
+
+Scanning SEO...
+Checking speed...
+Analyzing competitors...
+Generating AI insights...
+
+--------------------------------
+
+DASHBOARD LAYOUT
+
+Left sidebar:
+
+Dashboard
+Website Audit
+SEO
+Performance
+Competitors
+Leads
+AI Assistant
+Reports
+Settings
+
+Top navbar:
+
+Profile
+Notifications
+Search
+Dark mode toggle
+
+--------------------------------
+
+DASHBOARD HOME
+
+Create stat cards:
+
+Website Score
+SEO Score
+Performance
+Lead Potential
+
+Display:
+
+SEO trend chart
+Traffic estimate graph
+Competitor comparison graph
+Growth analytics
+
+Use Recharts.
+
+--------------------------------
+
+WEBSITE AUDIT SYSTEM
+
+Scan website and detect:
+
+Broken links
+
+Missing title tags
+
+Missing meta descriptions
+
+Bad heading structure
+
+Missing H1
+
+Image optimization issues
+
+Mobile responsiveness problems
+
+Missing viewport tags
+
+Display:
+
+Issue severity:
+
+Critical
+Medium
+Low
+
+Add progress indicators.
+
+--------------------------------
+
+SEO ANALYZER
+
+Create SEO score out of 100.
+
+Scoring:
+
+Meta Tags =20
+
+Headings =20
+
+Keywords =15
+
+Images =15
+
+Performance =15
+
+Mobile =15
+
+Display:
+
+SEO score circle
+
+Recommendations:
+
+Add schema markup
+
+Improve keyword usage
+
+Compress images
+
+Improve title tags
+
+--------------------------------
+
+PERFORMANCE ANALYZER
+
+Display:
+
+Performance score
+
+First Content Paint
+
+Largest Content Paint
+
+Time To Interactive
+
+Warnings:
+
+Large JS bundle
+
+Unused CSS
+
+Heavy images
+
+Use cards and charts.
+
+--------------------------------
+
+AI SUGGESTION ENGINE
+
+Send audit data into AI.
+
+Prompt:
+
+You are an expert website growth consultant.
+
+Analyze:
+
+SEO score
+Performance score
+Business type
+
+Generate:
+
+Critical issues
+
+Growth opportunities
+
+Website suggestions
+
+Marketing ideas
+
+Lead generation advice
+
+Return highly actionable insights.
+
+--------------------------------
+
+COMPETITOR ANALYZER
+
+Compare:
+
+SEO
+
+Speed
+
+Traffic estimate
+
+Blog frequency
+
+Social activity
+
+Display side-by-side comparison table.
+
+Use progress bars and charts.
+
+--------------------------------
+
+LEAD TRACKER
+
+Create CRM section.
+
+Fields:
+
+Business name
+
+Owner name
+
+Phone
+
+Email
+
+Status
+
+Notes
+
+Follow-up date
+
+Statuses:
+
+New
+
+Contacted
+
+Interested
+
+Closed
+
+Lost
+
+Allow add/edit/delete.
+
+--------------------------------
+
+AI CHATBOT
+
+Create floating AI assistant.
+
+User can ask:
+
+"How can I improve my bakery website?"
+
+AI responds using report data.
+
+--------------------------------
+
+REPORT SYSTEM
+
+Create downloadable PDF reports.
+
+Include:
+
+Business details
+
+Audit scores
+
+Website problems
+
+Recommendations
+
+Competitor comparison
+
+AI suggestions
+
+Growth strategy
+
+Professional design.
+
+--------------------------------
+
+DATABASE MODELS
+
+Users
+
+Reports
+
+Leads
+
+Messages
+
+Competitors
+
+--------------------------------
+
+FOLDER STRUCTURE
+
+client/
+
+src/
+components/
+pages/
+dashboard/
+charts/
+services/
+
+server/
+
+routes/
+controllers/
+models/
+middleware/
+services/
+
+--------------------------------
+
+Add smooth animations everywhere.
+
+Make the UI feel like a premium startup valued at millions.
+
+Generate complete frontend and backend code with reusable components and scalable architecture.

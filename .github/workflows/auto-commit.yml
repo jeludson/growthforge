@@ -1,0 +1,41 @@
+name: Auto Commit Changes
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'  # Every 2 hours
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Check for changes
+        id: git-status
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.git-status.outputs.changes == 'true'
+        run: |
+          git commit -m "Auto-commit: Update project files"
+          git push origin main

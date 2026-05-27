@@ -1,0 +1,13 @@
+import mongoose from 'mongoose';
+
+const messageSchema = new mongoose.Schema(
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    role: { type: String, enum: ['user', 'assistant'], required: true },
+    content: { type: String, required: true },
+    reportId: { type: mongoose.Schema.Types.ObjectId, ref: 'Report' },
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model('Message', messageSchema);

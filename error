@@ -1,0 +1,7 @@
+
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\selprojects\sitedoc> git commit -m "Add auto-commit workflow"
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\selprojects\sitedoc> git push origin main
+fatal: not a git repository (or any of the parent directories): .git
+PS D:\selprojects\sitedoc> 

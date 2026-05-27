@@ -1,0 +1,13 @@
+[phases.setup]
+  nixpkgsArch = "x86_64-linux"
+  
+[phases.install]
+  dependsOn = ["setup"]
+  cmds = ["cd server && npm install"]
+  
+[phases.build]
+  dependsOn = ["install"]
+  cmds = ["cd server && npm run build"]
+  
+[start]
+  cmd = "cd server && npm start"
