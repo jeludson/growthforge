@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
@@ -21,12 +20,22 @@ const io = new Server(httpServer, {
 
 app.set('io', io);
 
+// Middleware
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 
-app.get('/', (_, res) => res.json({ success: true, message: 'GrowthForge AI API is running' }));
-app.get('/api/health', (_, res) => res.json({ success: true, message: 'GrowthForge AI API is running' }));
+// Test routes
+app.get('/', (_, res) => {
+  console.log('Root route accessed');
+  res.json({ success: true, message: 'GrowthForge AI API is running!' });
+});
 
+app.get('/api/health', (_, res) => {
+  console.log('Health check accessed');
+  res.json({ success: true, message: 'Healthy!' });
+});
+
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/leads', leadRoutes);
@@ -34,32 +43,25 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/competitors', competitorRoutes);
 
 io.on('connection', (socket) => {
+  console.log('New client connected:', socket.id);
   socket.on('join', (userId) => {
     if (userId) socket.join(userId);
   });
-  socket.on('disconnect', () => {});
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 
 const start = async () => {
   try {
-    // Try MongoDB connection, but continue if it fails for demo purposes
-    try {
-      const uri = process.env.MONGODB_URI;
-      if (uri) {
-        await mongoose.connect(uri);
-        console.log('MongoDB connected');
-      } else {
-        console.log('MongoDB URI not provided - running in demo mode');
-      }
-    } catch (dbErr) {
-      console.warn('MongoDB connection failed - running in demo mode:', dbErr.message);
-    }
-    
-    httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+    });
   } catch (err) {
-    console.error('Failed to start:', err.message);
+    console.error('❌ Failed to start server:', err.message);
     process.exit(1);
   }
 };
