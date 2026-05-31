@@ -1,6 +1,1 @@
- 404: NOT_FOUND
-Code: NOT_FOUND
-ID: bom1::hbbql-1780230080613-bb924abeb1f1
-
-Read our documentation to learn more about this error.
-it shows this when i open the page 
+Command "cd client && npm run build" exited with 127
