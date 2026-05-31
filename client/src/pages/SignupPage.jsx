@@ -18,11 +18,15 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    console.log('🔐 Registering user:', { name, email });
     try {
       await register(name, email, password);
+      console.log('✅ Registration successful!');
       navigate('/onboarding');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('❌ Registration failed:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
+      setError(errorMsg);
     }
     setLoading(false);
   };
