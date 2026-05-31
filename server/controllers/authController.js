@@ -4,6 +4,7 @@ import { store } from '../store.js';
 
 const sendToken = (user, statusCode, res) => {
   const token = generateToken(user.id);
+  console.log('✅ Generated token for user:', user.email);
   res.status(statusCode).json({
     success: true,
     token,
@@ -23,10 +24,25 @@ const sendToken = (user, statusCode, res) => {
 
 export const register = async (req, res) => {
   try {
+    console.log('📥 Register request received:', { body: req.body });
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email, and password'
+      });
+    }
+
     const exists = store.users.find(u => u.email === email);
-    if (exists) return res.status(400).json({ success: false, message: 'Email already registered' });
-    
+    if (exists) {
+      console.log('❌ User already exists:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+
     const user = {
       id: store.userIdCounter++,
       name,
@@ -41,22 +57,47 @@ export const register = async (req, res) => {
       createdAt: new Date()
     };
     store.users.push(user);
+    console.log('✅ User registered successfully:', user.email);
     sendToken(user, 201, res);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('❌ Registration error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: err.message
+    });
   }
 };
 
 export const login = async (req, res) => {
   try {
+    console.log('📥 Login request received:', { body: req.body });
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide email and password'
+      });
+    }
+
     const user = store.users.find(u => u.email === email && u.password === password);
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      console.log('❌ Invalid credentials for email:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
+    console.log('✅ User logged in successfully:', user.email);
     sendToken(user, 200, res);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('❌ Login error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: err.message
+    });
   }
 };
 
@@ -115,8 +156,15 @@ export const resetPassword = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  const user = store.users.find(u => u.id === req.user?.id);
-  res.json({ success: true, user });
+  try {
+    const user = store.users.find(u => u.id === req.user?.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 export const updateProfile = async (req, res) => {
@@ -126,7 +174,7 @@ export const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
     const fields = ['name', 'websiteUrl', 'businessCategory', 'location', 'competitors', 'onboardingComplete', 'avatar'];
-    fields.forEach((f) => { 
+    fields.forEach((f) => {
       if (req.body[f] !== undefined) {
         store.users[userIndex][f] = req.body[f];
       }
