@@ -1,11 +1,7 @@
 import { scanWebsite, calculateSeoScores, calculatePerformance, analyzeCompetitor } from '../services/websiteScanner.js';
 import { generateAIInsights } from '../services/aiService.js';
 import { generateReportPDF } from '../services/pdfService.js';
-
-let reports = [];
-let reportIdCounter = 1;
-let competitors = [];
-let competitorIdCounter = 1;
+import { store } from '../store.js';
 
 const buildAnalytics = (seoScore, perfScore) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -38,11 +34,11 @@ export const generateReport = async (req, res) => {
     for (const url of compUrls.filter(Boolean).slice(0, 5)) {
       const comp = await analyzeCompetitor(url);
       competitorData.push(comp);
-      const existing = competitors.find(c => c.userId === req.user.id && c.url === url);
+      const existing = store.competitors.find(c => c.userId === req.user.id && c.url === url);
       if (existing) {
         Object.assign(existing, comp);
       } else {
-        competitors.push({ id: competitorIdCounter++, ...comp, url, userId: req.user.id, createdAt: new Date() });
+        store.competitors.push({ id: store.competitorIdCounter++, ...comp, url, userId: req.user.id, createdAt: new Date() });
       }
     }
 
@@ -63,14 +59,14 @@ export const generateReport = async (req, res) => {
     const aiInsights = await generateAIInsights(draft);
 
     const report = {
-      id: reportIdCounter++,
+      id: store.reportIdCounter++,
       userId: req.user.id,
       ...draft,
       aiInsights,
       analytics: buildAnalytics(seo.score, perf.score),
       createdAt: new Date()
     };
-    reports.push(report);
+    store.reports.push(report);
 
     res.status(201).json({ success: true, report });
   } catch (err) {
@@ -79,25 +75,25 @@ export const generateReport = async (req, res) => {
 };
 
 export const getReports = async (req, res) => {
-  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const userReports = store.reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({ success: true, reports: userReports });
 };
 
 export const getReport = async (req, res) => {
-  const report = reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
+  const report = store.reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
   if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
   res.json({ success: true, report });
 };
 
 export const getLatestReport = async (req, res) => {
-  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const userReports = store.reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const report = userReports[0] || null;
   res.json({ success: true, report });
 };
 
 export const downloadPDF = async (req, res) => {
   try {
-    const report = reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
+    const report = store.reports.find(r => r.id === parseInt(req.params.id) && r.userId === req.user.id);
     if (!report) return res.status(404).json({ success: false, message: 'Report not found' });
     const buffer = await generateReportPDF(report, req.user);
     res.setHeader('Content-Type', 'application/pdf');
@@ -109,7 +105,7 @@ export const downloadPDF = async (req, res) => {
 };
 
 export const rescanWebsite = async (req, res) => {
-  const userReports = reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const userReports = store.reports.filter(r => r.userId === req.user.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const latest = userReports[0];
   if (!latest) return res.status(404).json({ success: false, message: 'No report to rescan' });
   req.body = {

@@ -1,8 +1,6 @@
 import crypto from 'crypto';
 import { generateToken } from '../middleware/auth.js';
-
-let users = [];
-let userIdCounter = 1;
+import { store } from '../store.js';
 
 const sendToken = (user, statusCode, res) => {
   const token = generateToken(user.id);
@@ -26,11 +24,11 @@ const sendToken = (user, statusCode, res) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const exists = users.find(u => u.email === email);
+    const exists = store.users.find(u => u.email === email);
     if (exists) return res.status(400).json({ success: false, message: 'Email already registered' });
     
     const user = {
-      id: userIdCounter++,
+      id: store.userIdCounter++,
       name,
       email,
       password,
@@ -42,7 +40,7 @@ export const register = async (req, res) => {
       onboardingComplete: false,
       createdAt: new Date()
     };
-    users.push(user);
+    store.users.push(user);
     sendToken(user, 201, res);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -52,7 +50,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = users.find(u => u.email === email && u.password === password);
+    const user = store.users.find(u => u.email === email && u.password === password);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -65,10 +63,10 @@ export const login = async (req, res) => {
 export const googleAuth = async (req, res) => {
   try {
     const { googleId, email, name, avatar } = req.body;
-    let user = users.find(u => u.email === email);
+    let user = store.users.find(u => u.email === email);
     if (!user) {
       user = {
-        id: userIdCounter++,
+        id: store.userIdCounter++,
         googleId,
         email,
         name,
@@ -81,7 +79,7 @@ export const googleAuth = async (req, res) => {
         onboardingComplete: false,
         createdAt: new Date()
       };
-      users.push(user);
+      store.users.push(user);
     }
     sendToken(user, 200, res);
   } catch (err) {
@@ -91,7 +89,7 @@ export const googleAuth = async (req, res) => {
 
 export const forgotPassword = async (req, res) => {
   try {
-    const user = users.find(u => u.email === req.body.email);
+    const user = store.users.find(u => u.email === req.body.email);
     if (!user) return res.json({ success: true, message: 'If that email exists, a reset link was sent' });
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
@@ -105,7 +103,7 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const hashed = crypto.createHash('sha256').update(req.body.token).digest('hex');
-    const user = users.find(u => u.resetPasswordToken === hashed && u.resetPasswordExpire > Date.now());
+    const user = store.users.find(u => u.resetPasswordToken === hashed && u.resetPasswordExpire > Date.now());
     if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired token' });
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
@@ -117,23 +115,23 @@ export const resetPassword = async (req, res) => {
 };
 
 export const getMe = async (req, res) => {
-  const user = users.find(u => u.id === req.user?.id);
+  const user = store.users.find(u => u.id === req.user?.id);
   res.json({ success: true, user });
 };
 
 export const updateProfile = async (req, res) => {
   try {
-    const userIndex = users.findIndex(u => u.id === req.user?.id);
+    const userIndex = store.users.findIndex(u => u.id === req.user?.id);
     if (userIndex === -1) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
     const fields = ['name', 'websiteUrl', 'businessCategory', 'location', 'competitors', 'onboardingComplete', 'avatar'];
     fields.forEach((f) => { 
       if (req.body[f] !== undefined) {
-        users[userIndex][f] = req.body[f];
+        store.users[userIndex][f] = req.body[f];
       }
     });
-    res.json({ success: true, user: users[userIndex] });
+    res.json({ success: true, user: store.users[userIndex] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
